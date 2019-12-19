@@ -55,8 +55,8 @@ const int BTN_FN24=30;
 int keycode = 0;
 int keycodeold = 0;
 int hc138 = 1;
-int f=1;
-int t=6;
+int f=1;  //  Установка начальных сигналов на MC74HC138A
+int t=7;  //  Установка конечных сигналов на MC74HC138A
 int k;
 int volume=5;
 int oldvolume;
