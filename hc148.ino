@@ -19,6 +19,7 @@ const int BTN_REDIAL=62;
 const int BTN_PGM=53;
 const int BTN_VOLUP=61;
 const int BTN_VOLDOWN=60;
+const int BTN_ICM=77;
 const int BTN_MON=50;
 const int BTN_HOLD=63;
 const int BTN_CBK=42;
@@ -64,6 +65,7 @@ bool keypressed = HIGH;
 bool keyoldstate = LOW;
 bool loopsingle = false;
 bool loopall = false;
+bool playing = false;
 //#define _DEBUG
 
 SoftwareSerial mySoftwareSerial(4,5); // RX, TX
@@ -128,13 +130,18 @@ void loop() {
 }
 
 void  timerInterupt() {
+#ifdef _DEBUG
+  Serial.println(~PINC & B111);
+#endif        
   for (k=f;k<=t;k++) {
     PORTC=k<<3;
     keypressed=digitalRead(2);
-    if (keypressed) {
+    if (keypressed && ((keycode=(~PINC & B111)+(k*10))!=74)) {
         if (!keyoldstate){
-        keycode=(~PINC & B111)+(k*10);
-        keyoldstate=HIGH;
+//        keycode=(~PINC & B111)+(k*10);
+//        if (keycode!=74){
+          keyoldstate=HIGH;          
+//        }
 #ifdef _DEBUG
         Serial.print("Keycode: ");
         Serial.println(keycode);
@@ -149,8 +156,17 @@ void  timerInterupt() {
           case BTN_VOLDOWN:
             myDFPlayer.volumeDown();  
             break;
-          case BTN_MON:
+          case BTN_ICM:
             myDFPlayer.previous();  
+            break;
+          case BTN_MON:
+            if (playing){
+              myDFPlayer.pause();
+              playing=false;
+            } else {
+              myDFPlayer.start();
+              playing=true;
+            }
             break;
           case BTN_HOLD:
             myDFPlayer.next();  
@@ -191,6 +207,42 @@ void  timerInterupt() {
           case BTN_FN12:
             myDFPlayer.loopFolder(12);  
             break;
+          case BTN_FN13:
+            myDFPlayer.playMp3Folder(2);  
+            break;
+          case BTN_FN14:
+            myDFPlayer.playMp3Folder(4);  
+            break;
+          case BTN_FN15:
+            myDFPlayer.playMp3Folder(6);  
+            break;
+          case BTN_FN16:
+            myDFPlayer.playMp3Folder(8);  
+            break;
+          case BTN_FN17:
+            myDFPlayer.playMp3Folder(10);  
+            break;
+          case BTN_FN18:
+            myDFPlayer.playMp3Folder(12);  
+            break;
+          case BTN_FN19:
+            myDFPlayer.playMp3Folder(20);  
+            break;
+          case BTN_FN20:
+            myDFPlayer.playMp3Folder(38);  
+            break;
+          case BTN_FN21:
+            myDFPlayer.playMp3Folder(48);  
+            break;
+          case BTN_FN22:
+            myDFPlayer.playMp3Folder(56);  
+            break;
+          case BTN_FN23:
+            myDFPlayer.playMp3Folder(60);  
+            break;
+          case BTN_FN24:
+            myDFPlayer.playMp3Folder(65);  
+            break;
           case BTN_CBK:
             if (loopsingle) {
               myDFPlayer.disableLoop();  
@@ -215,7 +267,10 @@ void  timerInterupt() {
             myDFPlayer.start();  
             break;
           case BTN_FLASH:
-            myDFPlayer.pause();  
+            myDFPlayer.randomAll();
+            break;
+          case BTN_1:
+            myDFPlayer.randomAll();
             break;
             
         }
@@ -226,7 +281,7 @@ void  timerInterupt() {
     else if (keyoldstate) {
       keyoldstate = LOW;
       f=1;
-      t=6;
+      t=7;
     }
   }
 }
