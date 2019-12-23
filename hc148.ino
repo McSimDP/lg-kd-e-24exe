@@ -2,16 +2,16 @@
 Назначение выводов платы KBU OF KD/E-25/37
 1:
 2:  HC148.EI
-3:
+3: GM6486.LOAD
 4:
 5:
 6:  HC148.EO  
-7:  LCD Data0
-8:  LCD Data1
-9:  LCD Data2
-10: LCD Data3
-11: LCD Data4
-12: LCD Data5
+7:  LCD Data0; HC148.A0
+8:  LCD Data1; HC148.A1
+9:  LCD Data2; HC148.A2
+10: LCD Data3; HC138A.A0; GM6486.DATA IN
+11: LCD Data4; HC138A.A1; GM6486.CLOCK IN
+12: LCD Data5; HC138A.A2
 13: LCD Data6
 14: LCD Data7
 15: GND
