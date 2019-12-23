@@ -1,3 +1,22 @@
+/*
+Назначение выводов платы KBU OF KD/E-25/37
+1:
+2:  HC148.EI
+3:
+4:
+5:
+6:  HC148.EO  
+7:  LCD Data0
+8:  LCD Data1
+9:  LCD Data2
+10: LCD Data3
+11: LCD Data4
+12: LCD Data5
+13: LCD Data6
+14: LCD Data7
+15: GND
+16: +5v
+*/
 #include <MsTimer2.h>
 #include "SoftwareSerial.h"
 #include "DFRobotDFPlayerMini.h"
