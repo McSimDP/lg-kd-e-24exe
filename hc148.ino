@@ -78,11 +78,13 @@ const int BTN_FN24=30;
 int keycode = 0;
 int keycodeold = 0;
 int hc138 = 1;
+int pin = 0; // какой пин будет установлен из 33
 int f=1;  //  Установка начальных сигналов на MC74HC138A
 int t=7;  //  Установка конечных сигналов на MC74HC138A
 int k;
 int volume=5;
 int oldvolume;
+int song = 0; // Набранная на клавиатуре песня
 bool keypressed = HIGH;
 bool keyoldstate = LOW;
 bool loopsingle = false;
@@ -97,6 +99,12 @@ void printDetail(uint8_t type, int value);
 void setup() {
   pinMode ( latchPin, OUTPUT);
   digitalWrite( latchPin, LOW);
+  shiftOut33(dataPin, clockPin, 0, 0, 0, 0 ,0);
+        digitalWrite(clockPin, LOW);
+        digitalWrite(latchPin, HIGH);
+        digitalWrite(clockPin, HIGH);
+        digitalWrite(latchPin, LOW);
+        digitalWrite(clockPin, LOW);
   Serial.begin(9600);
   mySoftwareSerial.begin(9600);
   // put your setup code here, to run once:
@@ -293,20 +301,94 @@ void  timerInterupt() {
             digitalWrite(latchPin, LOW);
             for (int i=0; i<8; i++){
               shiftOut33(dataPin, clockPin, 1<<i, 1<<i, 1<<i, 1<<i ,B0);
-              digitalWrite(latchPin, HIGH);
-              digitalWrite(latchPin, LOW);
-              delay (5000);
+              delay (30000);
             }
               shiftOut33(dataPin, clockPin, 0, 0, 0, 0 ,0);
+              digitalWrite(latchPin, HIGH);
+              digitalWrite(latchPin, LOW);
             MsTimer2::start();
             break;
           case BTN_FLASH:
-            myDFPlayer.randomAll();
+            MsTimer2::stop();
+            if(pin>33){
+              pin=0;
+            }
+            setPin(dataPin, clockPin,pin++);
+            MsTimer2::start();
             break;
           case BTN_1:
-            myDFPlayer.randomAll();
+            if ((song!=0) &&(song<10)) {
+              song=song*10+1;
+            } else {
+              song=1;
+            }
             break;
-            
+          case BTN_2:
+            if ((song!=0) &&(song<10)) {
+              song=song*10+2;
+            } else {
+              song=2;
+            }
+            break;
+          case BTN_3:
+            if ((song!=0) &&(song<10)) {
+              song=song*10+3;
+            } else {
+              song=3;
+            }
+            break;
+          case BTN_4:
+            if ((song!=0) &&(song<10)) {
+              song=song*10+4;
+            } else {
+              song=4;
+            }
+            break;
+          case BTN_5:
+            if ((song!=0) &&(song<10)) {
+              song=song*10+5;
+            } else {
+              song=5;
+            }
+            break;
+          case BTN_6:
+            if ((song!=0) &&(song<10)) {
+              song=song*10+6;
+            } else {
+              song=6;
+            }
+            break;
+          case BTN_7:
+            if ((song!=0) &&(song<10)) {
+              song=song*10+7;
+            } else {
+              song=7;
+            }
+            break;
+          case BTN_8:
+            if ((song!=0) &&(song<10)) {
+              song=song*10+8;
+            } else {
+              song=8;
+            }
+            break;
+          case BTN_9:
+            if ((song!=0) &&(song<10)) {
+              song=song*10+9;
+            } else {
+              song=9;
+            }
+            break;
+          case BTN_0:
+            if ((song!=0) &&(song<10)) {
+              song=song*10;
+            }
+            break;
+          case BTN_SHARP:
+            if (song!=0){
+              myDFPlayer.playMp3Folder(song);  
+            }
+            break;            
         }
         f=t=k;          
         break;
@@ -385,7 +467,12 @@ void printDetail(uint8_t type, int value){
 void shiftOut33(uint8_t dataPin, uint8_t clockPin, uint8_t byte1, uint8_t byte2, uint8_t byte3, uint8_t byte4, bool byte5)
 {
         uint8_t i;
-  
+          digitalWrite(clockPin, LOW);
+        digitalWrite(latchPin, HIGH);
+        digitalWrite(clockPin, HIGH);
+        digitalWrite(latchPin, LOW);
+        digitalWrite(clockPin, LOW);
+
         for (i = 0; i < 8; i++)  {
                 digitalWrite(clockPin, HIGH);
                 digitalWrite(dataPin, !!(byte1 & (1 << (7-i))));
@@ -409,6 +496,62 @@ void shiftOut33(uint8_t dataPin, uint8_t clockPin, uint8_t byte1, uint8_t byte2,
         digitalWrite(clockPin, HIGH);
         digitalWrite(dataPin, !!(byte5 & 1));
         digitalWrite(clockPin, LOW);
-  digitalWrite(latchPin, HIGH);
-  digitalWrite(latchPin, LOW);
+        digitalWrite(latchPin, HIGH);
+        digitalWrite(clockPin, HIGH);
+        digitalWrite(latchPin, LOW);
+        digitalWrite(clockPin, LOW);
+}
+
+void setPin(uint8_t dataPin, uint8_t clockPin, uint8_t byte1)
+{
+        uint8_t i;
+        digitalWrite(clockPin, LOW);
+        digitalWrite(latchPin, HIGH);
+        digitalWrite(clockPin, HIGH);
+        digitalWrite(latchPin, LOW);
+        digitalWrite(clockPin, LOW);
+        for (i = 1; i < 34; i++)  {
+#ifdef _DEBUG
+        Serial.print("i: ");
+        Serial.println(i);
+#endif        
+                digitalWrite(clockPin,HIGH);
+                if (i==byte1){
+                  digitalWrite(dataPin, HIGH);
+                } else{
+                  digitalWrite(dataPin, LOW);                  
+                }
+                digitalWrite(clockPin, LOW);
+        }
+        digitalWrite(latchPin, HIGH);
+        digitalWrite(clockPin, HIGH);
+        digitalWrite(latchPin, LOW);
+        digitalWrite(clockPin, LOW);
+}
+
+void setPin_old(uint8_t dataPin, uint8_t clockPin, uint8_t byte1)
+{
+        uint8_t i;
+        digitalWrite(clockPin, LOW);
+        digitalWrite(latchPin, HIGH);
+        digitalWrite(clockPin, HIGH);
+        digitalWrite(latchPin, LOW);
+        digitalWrite(clockPin, LOW);
+        for (i = 0; i < byte1-1; i++)  {
+                digitalWrite(clockPin,HIGH);
+                digitalWrite(dataPin, LOW);
+                digitalWrite(clockPin, LOW);
+        }
+        digitalWrite(clockPin,HIGH);
+        digitalWrite(dataPin, HIGH);
+        digitalWrite(clockPin, LOW);
+        for (i = byte1; i < 34; i++)  {
+                digitalWrite(clockPin,HIGH);
+                digitalWrite(dataPin, LOW);
+                digitalWrite(clockPin, LOW);
+        }        
+        digitalWrite(latchPin, HIGH);
+        digitalWrite(clockPin, HIGH);
+        digitalWrite(latchPin, LOW);
+        digitalWrite(clockPin, LOW);
 }
