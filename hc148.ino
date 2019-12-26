@@ -34,7 +34,8 @@ const int d4 = 18;
 const int d5 = 19;
 const int d6 = 8;
 const int d7 = 9;
-
+//DF
+const int busyDF=13;
 //Задаюся константы соответствия кнопки и её "коду"
 const int BTN_0=54;
 const int BTN_1=47;
@@ -92,6 +93,7 @@ int hc138 = 1;
 int pin = 0; // какой пин будет установлен из 33
 int f=1;  //  Установка начальных сигналов на MC74HC138A
 int t=7;  //  Установка конечных сигналов на MC74HC138A
+byte chartst =0;
 int k;
 int volume=5;
 int oldvolume;
@@ -100,7 +102,7 @@ bool keypressed = HIGH;
 bool keyoldstate = LOW;
 bool loopsingle = false;
 bool loopall = false;
-bool playing = false;
+//bool playing = false;
 //#define _DEBUG
 
 SoftwareSerial mySoftwareSerial(4,5); // RX, TX
@@ -124,13 +126,14 @@ void setup() {
 */        
 //setPin(dataPin, clockPin,0);
 //  resetGM(dataPin, clockPin, latchPin);
-  delay(2000);
+//  delay(2000);
   // LCD
   pinMode(v0,OUTPUT);
-  analogWrite(v0,10);
+  analogWrite(v0,0);
   lcd.begin(24, 2);
   lcd.print(F("Initializing Phone...")); 
-  
+// DF
+  pinMode ( busyDF, INPUT);  
   mySoftwareSerial.begin(9600);
   // put your setup code here, to run once:
   DDRC = B111000;
@@ -196,14 +199,16 @@ void loop() {
 void  timerInterupt() {
 #ifdef _DEBUG
   Serial.println(~PINC & B111);
-#endif        
+#endif
+  if (digitalRead(busyDF)){
+    lcd.clear();
+  }
   for (k=f;k<=t;k++) {
     PORTC=k<<3;
     keypressed=digitalRead(2);
     if (keypressed && ((keycode=(~PINC & B111)+(k*10))!=74)) {
         if (!keyoldstate){
           keyoldstate=HIGH;          
-//        }
 #ifdef _DEBUG
         Serial.print("Keycode: ");
         Serial.println(keycode);
@@ -222,12 +227,10 @@ void  timerInterupt() {
             myDFPlayer.previous();  
             break;
           case BTN_MON:
-            if (playing){
-              myDFPlayer.pause();
-              playing=false;
-            } else {
+            if (digitalRead(busyDF)){
               myDFPlayer.start();
-              playing=true;
+            } else {
+              myDFPlayer.pause();
             }
             break;
           case BTN_HOLD:
@@ -346,12 +349,23 @@ void  timerInterupt() {
             setPin(dataPin, clockPin,pin++);
             MsTimer2::start();
             break;
+          case BTN_REDIAL:
+            lcd.clear();
+            lcd.write(chartst);
+            chartst++;
+            break;
+          case BTN_PGM:
+            lcd.clear();
+            lcd.print(String(digitalRead(busyDF)));
+            break;
           case BTN_1:
             if ((song!=0) &&(song<10)) {
               song=song*10+1;
             } else {
               song=1;
             }
+              lcd.setCursor(0, 1);
+              lcd.print(String(song));
             break;
           case BTN_2:
             if ((song!=0) &&(song<10)) {
@@ -359,6 +373,8 @@ void  timerInterupt() {
             } else {
               song=2;
             }
+              lcd.setCursor(0, 1);
+              lcd.print(String(song));
             break;
           case BTN_3:
             if ((song!=0) &&(song<10)) {
@@ -366,6 +382,8 @@ void  timerInterupt() {
             } else {
               song=3;
             }
+            lcd.setCursor(0, 1);
+            lcd.print(String(song));
             break;
           case BTN_4:
             if ((song!=0) &&(song<10)) {
@@ -373,6 +391,8 @@ void  timerInterupt() {
             } else {
               song=4;
             }
+            lcd.setCursor(0, 1);
+            lcd.print(String(song));
             break;
           case BTN_5:
             if ((song!=0) &&(song<10)) {
@@ -380,6 +400,8 @@ void  timerInterupt() {
             } else {
               song=5;
             }
+            lcd.setCursor(0, 1);
+            lcd.print(String(song));
             break;
           case BTN_6:
             if ((song!=0) &&(song<10)) {
@@ -387,6 +409,8 @@ void  timerInterupt() {
             } else {
               song=6;
             }
+            lcd.setCursor(0, 1);
+            lcd.print(String(song));
             break;
           case BTN_7:
             if ((song!=0) &&(song<10)) {
@@ -394,6 +418,8 @@ void  timerInterupt() {
             } else {
               song=7;
             }
+            lcd.setCursor(0, 1);
+            lcd.print(String(song));
             break;
           case BTN_8:
             if ((song!=0) &&(song<10)) {
@@ -401,6 +427,8 @@ void  timerInterupt() {
             } else {
               song=8;
             }
+            lcd.setCursor(0, 1);
+            lcd.print(String(song));
             break;
           case BTN_9:
             if ((song!=0) &&(song<10)) {
@@ -408,16 +436,20 @@ void  timerInterupt() {
             } else {
               song=9;
             }
+            lcd.setCursor(0, 1);
+            lcd.print(String(song));
             break;
           case BTN_0:
             if ((song!=0) &&(song<10)) {
               song=song*10;
             }
+            lcd.setCursor(0, 1);
+            lcd.print(String(song));
             break;
           case BTN_SHARP:
             if (song!=0){
-            lcd.setCursor(0, 1);
-            lcd.print(String(song)+" track is playing now");
+              lcd.setCursor(0, 1);
+              lcd.print(String(song)+" track is playing now");
               myDFPlayer.playMp3Folder(song);  
             }
             break;            
