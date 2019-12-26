@@ -1,10 +1,10 @@
 /*
 Назначение выводов платы KBU OF KD/E-25/37
-1:
+1:  LCD contrast
 2:  HC148.EI
 3: GM6486.LOAD
-4:
-5:
+4:  LCD RS
+5:  LCD Enable
 6:  HC148.EO  
 7:  LCD Data0; HC148.A0
 8:  LCD Data1; HC148.A1
@@ -18,11 +18,22 @@
 16: +5v
 */
 #include <MsTimer2.h>
+#include <LiquidCrystal.h>
 #include "SoftwareSerial.h"
 #include "DFRobotDFPlayerMini.h"
+//  Описание пинов
+//  GM6486:
 const int clockPin = 18; // Пин синхронизации
 const int latchPin = 3; // Пин "защелка"
 const int dataPin = 17; // Пин для передачи данных
+//  LCD:
+const int v0 = 10;
+const int rs = 11;
+const int en = 12;
+const int d4 = 18;
+const int d5 = 19;
+const int d6 = 8;
+const int d7 = 9;
 
 //Задаюся константы соответствия кнопки и её "коду"
 const int BTN_0=54;
@@ -94,35 +105,56 @@ bool playing = false;
 
 SoftwareSerial mySoftwareSerial(4,5); // RX, TX
 DFRobotDFPlayerMini myDFPlayer;
+LiquidCrystal lcd(rs, en, d4, d5, d6, d7);
 void printDetail(uint8_t type, int value);
 
 void setup() {
+  // GM6486
   pinMode ( latchPin, OUTPUT);
   digitalWrite( latchPin, LOW);
-  shiftOut33(dataPin, clockPin, 0, 0, 0, 0 ,0);
-        digitalWrite(clockPin, LOW);
+/*          digitalWrite(dataPin, LOW);                  
+        for (uint8_t i = 0; i < 33; i++)  {
+                digitalWrite(clockPin,HIGH);
+                digitalWrite(clockPin, LOW);
+        }
         digitalWrite(latchPin, HIGH);
         digitalWrite(clockPin, HIGH);
         digitalWrite(latchPin, LOW);
         digitalWrite(clockPin, LOW);
-  Serial.begin(9600);
+*/        
+//setPin(dataPin, clockPin,0);
+//  resetGM(dataPin, clockPin, latchPin);
+  delay(2000);
+  // LCD
+  pinMode(v0,OUTPUT);
+  analogWrite(v0,10);
+  lcd.begin(24, 2);
+  lcd.print(F("Initializing Phone...")); 
+  
   mySoftwareSerial.begin(9600);
   // put your setup code here, to run once:
   DDRC = B111000;
   PORTC = hc138<<3;
   pinMode(2, INPUT_PULLUP); 
+#ifdef _DEBUG
+  Serial.begin(9600);
   Serial.println();
   Serial.println(F("DFRobot DFPlayer Mini Demo"));
   Serial.println(F("Initializing DFPlayer ... (May take 3~5 seconds)"));
+#endif
   
   if (!myDFPlayer.begin(mySoftwareSerial,false)) {  //Use softwareSerial to communicate with mp3.
 //  if (!myDFPlayer.begin(Serial)) {  //Use softwareSerial to communicate with mp3.
+#ifdef _DEBUG
     Serial.println(F("Unable to begin:"));
     Serial.println(F("1.Please recheck the connection!"));
     Serial.println(F("2.Please insert the SD card!"));
+#endif
     while(true);
   }
+#ifdef _DEBUG
   Serial.println(F("DFPlayer Mini online."));
+#endif
   
   myDFPlayer.setTimeOut(500); //Set serial communictaion time out 500ms
   
@@ -170,8 +202,6 @@ void  timerInterupt() {
     keypressed=digitalRead(2);
     if (keypressed && ((keycode=(~PINC & B111)+(k*10))!=74)) {
         if (!keyoldstate){
-//        keycode=(~PINC & B111)+(k*10);
-//        if (keycode!=74){
           keyoldstate=HIGH;          
 //        }
 #ifdef _DEBUG
@@ -303,7 +333,7 @@ void  timerInterupt() {
               shiftOut33(dataPin, clockPin, 1<<i, 1<<i, 1<<i, 1<<i ,B0);
               delay (30000);
             }
-              shiftOut33(dataPin, clockPin, 0, 0, 0, 0 ,0);
+              resetGM(dataPin, clockPin, latchPin);
               digitalWrite(latchPin, HIGH);
               digitalWrite(latchPin, LOW);
             MsTimer2::start();
@@ -386,6 +416,8 @@ void  timerInterupt() {
             break;
           case BTN_SHARP:
             if (song!=0){
+            lcd.setCursor(0, 1);
+            lcd.print(String(song)+" track is playing now");
               myDFPlayer.playMp3Folder(song);  
             }
             break;            
@@ -529,27 +561,19 @@ void setPin(uint8_t dataPin, uint8_t clockPin, uint8_t byte1)
         digitalWrite(clockPin, LOW);
 }
 
-void setPin_old(uint8_t dataPin, uint8_t clockPin, uint8_t byte1)
+
+void resetGM(uint8_t dataPin, uint8_t clockPin, uint8_t latchPin)
 {
-        uint8_t i;
         digitalWrite(clockPin, LOW);
         digitalWrite(latchPin, HIGH);
         digitalWrite(clockPin, HIGH);
         digitalWrite(latchPin, LOW);
         digitalWrite(clockPin, LOW);
-        for (i = 0; i < byte1-1; i++)  {
+        digitalWrite(dataPin, LOW);                  
+        for (uint8_t i = 1; i < 34; i++)  {
                 digitalWrite(clockPin,HIGH);
-                digitalWrite(dataPin, LOW);
                 digitalWrite(clockPin, LOW);
         }
-        digitalWrite(clockPin,HIGH);
-        digitalWrite(dataPin, HIGH);
-        digitalWrite(clockPin, LOW);
-        for (i = byte1; i < 34; i++)  {
-                digitalWrite(clockPin,HIGH);
-                digitalWrite(dataPin, LOW);
-                digitalWrite(clockPin, LOW);
-        }        
         digitalWrite(latchPin, HIGH);
         digitalWrite(clockPin, HIGH);
         digitalWrite(latchPin, LOW);
