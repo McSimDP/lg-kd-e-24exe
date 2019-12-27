@@ -17,14 +17,16 @@
 15: GND
 16: +5v
 */
+// Подключаем необходимые библиотеки для работы с прерываниями, DF Player Mini
+
 #include <MsTimer2.h>
 #include <LiquidCrystal.h>
 #include "SoftwareSerial.h"
 #include "DFRobotDFPlayerMini.h"
 //  Описание пинов
 //  GM6486:
-const int clockPin = 18; // Пин синхронизации
 const int latchPin = 3; // Пин "защелка"
+const int clockPin = 18; // Пин синхронизации
 const int dataPin = 17; // Пин для передачи данных
 //  LCD:
 const int v0 = 10;
@@ -36,6 +38,9 @@ const int d6 = 8;
 const int d7 = 9;
 //DF
 const int busyDF=13;
+const int dfTX = 4;
+const int dfRX = 5;
+
 //Задаюся константы соответствия кнопки и её "коду"
 const int BTN_0=54;
 const int BTN_1=47;
@@ -102,10 +107,9 @@ bool keypressed = HIGH;
 bool keyoldstate = LOW;
 bool loopsingle = false;
 bool loopall = false;
-//bool playing = false;
-//#define _DEBUG
+//#define _DEBUG    //Для отладки
 
-SoftwareSerial mySoftwareSerial(4,5); // RX, TX
+SoftwareSerial mySoftwareSerial(dfTX,dfRX); // RX, TX
 DFRobotDFPlayerMini myDFPlayer;
 LiquidCrystal lcd(rs, en, d4, d5, d6, d7);
 void printDetail(uint8_t type, int value);
@@ -147,7 +151,6 @@ void setup() {
 #endif
   
   if (!myDFPlayer.begin(mySoftwareSerial,false)) {  //Use softwareSerial to communicate with mp3.
-//  if (!myDFPlayer.begin(Serial)) {  //Use softwareSerial to communicate with mp3.
 #ifdef _DEBUG
     Serial.println(F("Unable to begin:"));
     Serial.println(F("1.Please recheck the connection!"));
@@ -162,11 +165,6 @@ void setup() {
   myDFPlayer.setTimeOut(500); //Set serial communictaion time out 500ms
   
   //----Set volume----
-#ifdef _DEBUG
-            Serial.print("volume=");
-            Serial.println(volume);
-#endif  
-delay (1000);
   myDFPlayer.volume(volume);  //Set volume value (0~30).
 //  myDFPlayer.volumeUp(); //Volume Up
 //  myDFPlayer.volumeDown(); //Volume Down
@@ -183,7 +181,7 @@ delay (1000);
 //  myDFPlayer.outputDevice(DFPLAYER_DEVICE_U_DISK);
 //  myDFPlayer.outputDevice(DFPLAYER_DEVICE_SD);
 //  Serial.println(myDFPlayer.readVolume());
-  MsTimer2::set(60, timerInterupt); // задаем период прерывания по таймеру 60 мс
+  MsTimer2::set(100, timerInterupt); // задаем период прерывания по таймеру 60 мс
   MsTimer2::start();               // разрешаем прерывание по таймеру
 }
 
