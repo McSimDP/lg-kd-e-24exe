@@ -101,7 +101,7 @@ int t=7;  //  Установка конечных сигналов на MC74HC13
 byte chartst =0;
 int k;
 int volume=5;
-int oldvolume;
+//int oldvolume;
 int song = 0; // Набранная на клавиатуре песня
 bool keypressed = HIGH;
 bool keyoldstate = LOW;
@@ -118,19 +118,6 @@ void setup() {
   // GM6486
   pinMode ( latchPin, OUTPUT);
   digitalWrite( latchPin, LOW);
-/*          digitalWrite(dataPin, LOW);                  
-        for (uint8_t i = 0; i < 33; i++)  {
-                digitalWrite(clockPin,HIGH);
-                digitalWrite(clockPin, LOW);
-        }
-        digitalWrite(latchPin, HIGH);
-        digitalWrite(clockPin, HIGH);
-        digitalWrite(latchPin, LOW);
-        digitalWrite(clockPin, LOW);
-*/        
-//setPin(dataPin, clockPin,0);
-//  resetGM(dataPin, clockPin, latchPin);
-//  delay(2000);
   // LCD
   pinMode(v0,OUTPUT);
   analogWrite(v0,0);
@@ -141,7 +128,7 @@ void setup() {
   mySoftwareSerial.begin(9600);
   // put your setup code here, to run once:
   DDRC = B111000;
-  PORTC = hc138<<3;
+//  PORTC = hc138<<3;
   pinMode(2, INPUT_PULLUP); 
 #ifdef _DEBUG
   Serial.begin(9600);
@@ -149,6 +136,7 @@ void setup() {
   Serial.println(F("DFRobot DFPlayer Mini Demo"));
   Serial.println(F("Initializing DFPlayer ... (May take 3~5 seconds)"));
 #endif
+  resetGM();  
   
   if (!myDFPlayer.begin(mySoftwareSerial,false)) {  //Use softwareSerial to communicate with mp3.
 #ifdef _DEBUG
@@ -161,7 +149,7 @@ void setup() {
 #ifdef _DEBUG
   Serial.println(F("DFPlayer Mini online."));
 #endif
-  
+//  resetGM();  
   myDFPlayer.setTimeOut(500); //Set serial communictaion time out 500ms
   
   //----Set volume----
@@ -177,11 +165,7 @@ void setup() {
 //  myDFPlayer.EQ(DFPLAYER_EQ_CLASSIC);
 //  myDFPlayer.EQ(DFPLAYER_EQ_BASS);
   
-  //----Set device we use SD as default----
-//  myDFPlayer.outputDevice(DFPLAYER_DEVICE_U_DISK);
-//  myDFPlayer.outputDevice(DFPLAYER_DEVICE_SD);
-//  Serial.println(myDFPlayer.readVolume());
-  MsTimer2::set(100, timerInterupt); // задаем период прерывания по таймеру 60 мс
+  MsTimer2::set(150, timerInterupt); // задаем период прерывания по таймеру 150 мс
   MsTimer2::start();               // разрешаем прерывание по таймеру
 }
 
@@ -195,9 +179,7 @@ void loop() {
 }
 
 void  timerInterupt() {
-#ifdef _DEBUG
-  Serial.println(~PINC & B111);
-#endif
+// Была идея очищать экран, когда модуль не активен - криво, нужно переделать.
   if (digitalRead(busyDF)){
     lcd.clear();
   }
@@ -334,15 +316,13 @@ void  timerInterupt() {
               shiftOut33(dataPin, clockPin, 1<<i, 1<<i, 1<<i, 1<<i ,B0);
               delay (30000);
             }
-              resetGM(dataPin, clockPin, latchPin);
-              digitalWrite(latchPin, HIGH);
-              digitalWrite(latchPin, LOW);
+            resetGM();
             MsTimer2::start();
             break;
           case BTN_FLASH:
             MsTimer2::stop();
             if(pin>33){
-              pin=0;
+              pin=1;
             }
             setPin(dataPin, clockPin,pin++);
             MsTimer2::start();
@@ -592,14 +572,14 @@ void setPin(uint8_t dataPin, uint8_t clockPin, uint8_t byte1)
 }
 
 
-void resetGM(uint8_t dataPin, uint8_t clockPin, uint8_t latchPin)
+void resetGM()
 {
-        digitalWrite(clockPin, LOW);
+/*        digitalWrite(clockPin, LOW);
         digitalWrite(latchPin, HIGH);
         digitalWrite(clockPin, HIGH);
         digitalWrite(latchPin, LOW);
         digitalWrite(clockPin, LOW);
-        digitalWrite(dataPin, LOW);                  
+*/        digitalWrite(dataPin, LOW);                  
         for (uint8_t i = 1; i < 34; i++)  {
                 digitalWrite(clockPin,HIGH);
                 digitalWrite(clockPin, LOW);
