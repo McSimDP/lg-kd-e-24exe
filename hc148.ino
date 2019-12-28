@@ -173,6 +173,10 @@ void loop() {
   if (myDFPlayer.available()) {
 //    printDetail(myDFPlayer.readType(), myDFPlayer.read()); //Print the detail message from DFPlayer to handle different errors and states.
   }  
+//  if (!digitalRead(busyDF)){
+//      setPin(26);
+//  }
+  
 
 //  delay(1000);
 //  Serial.println(myDFPlayer.readVolume());
@@ -181,7 +185,8 @@ void loop() {
 void  timerInterupt() {
 // Была идея очищать экран, когда модуль не активен - криво, нужно переделать.
   if (digitalRead(busyDF)){
-    lcd.clear();
+//    lcd.clear();
+      resetGM();
   }
   for (k=f;k<=t;k++) {
     PORTC=k<<3;
@@ -209,8 +214,10 @@ void  timerInterupt() {
           case BTN_MON:
             if (digitalRead(busyDF)){
               myDFPlayer.start();
+              setPin(26);
             } else {
               myDFPlayer.pause();
+//              resetGM();
             }
             break;
           case BTN_HOLD:
@@ -254,15 +261,19 @@ void  timerInterupt() {
             break;
           case BTN_FN13:
             myDFPlayer.playMp3Folder(2);  
+            setPin(5);
             break;
           case BTN_FN14:
             myDFPlayer.playMp3Folder(4);  
+            setPin(6);
             break;
           case BTN_FN15:
             myDFPlayer.playMp3Folder(6);  
+            setPin(7);
             break;
           case BTN_FN16:
             myDFPlayer.playMp3Folder(8);  
+            setPin(8);
             break;
           case BTN_FN17:
             myDFPlayer.playMp3Folder(10);  
@@ -278,15 +289,19 @@ void  timerInterupt() {
             break;
           case BTN_FN21:
             myDFPlayer.playMp3Folder(48);  
+            setPin(9);
             break;
           case BTN_FN22:
             myDFPlayer.playMp3Folder(56);  
+            setPin(10);
             break;
           case BTN_FN23:
-            myDFPlayer.playMp3Folder(60);  
+            myDFPlayer.playMp3Folder(60);
+            setPin(11);
             break;
           case BTN_FN24:
-            myDFPlayer.playMp3Folder(65);  
+            myDFPlayer.playMp3Folder(65);
+            setPin(12);
             break;
           case BTN_CBK:
             if (loopsingle) {
@@ -324,7 +339,7 @@ void  timerInterupt() {
             if(pin>33){
               pin=1;
             }
-            setPin(dataPin, clockPin,pin++);
+            setPin(pin++);
             MsTimer2::start();
             break;
           case BTN_REDIAL:
@@ -544,15 +559,14 @@ void shiftOut33(uint8_t dataPin, uint8_t clockPin, uint8_t byte1, uint8_t byte2,
         digitalWrite(clockPin, LOW);
 }
 
-void setPin(uint8_t dataPin, uint8_t clockPin, uint8_t byte1)
+void setPin(uint8_t byte1)
 {
-        uint8_t i;
         digitalWrite(clockPin, LOW);
         digitalWrite(latchPin, HIGH);
         digitalWrite(clockPin, HIGH);
         digitalWrite(latchPin, LOW);
         digitalWrite(clockPin, LOW);
-        for (i = 1; i < 34; i++)  {
+        for (uint8_t i = 1; i < 34; i++)  {
 #ifdef _DEBUG
         Serial.print("i: ");
         Serial.println(i);
